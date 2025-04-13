@@ -27,7 +27,7 @@ pydantic
 pygal
 pymdstat
 pymongo
-pySMART.smartx
+pySMART
 pysnmp-lextudio<6.2.0 # Pinned witing implementation of #2874
 python-dateutil
 pyzmq

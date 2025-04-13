@@ -11,10 +11,6 @@ Hard disk SMART attributes plugin.
 Depends on pySMART and smartmontools
 Must execute as root
 "usermod -a -G disk USERNAME" is not sufficient unfortunately
-SmartCTL (/usr/sbin/smartctl) must be in system path for python2.
-
-Regular PySMART is a python2 library.
-We are using the pySMART.smartx updated library to support both python 2 and 3.
 
 If we only have disk group access (no root):
 $ smartctl -i /dev/sda

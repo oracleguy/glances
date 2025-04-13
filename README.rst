@@ -128,7 +128,7 @@ Optional dependencies:
 - ``pymdstat`` (for RAID support) [Linux-only]
 - ``pymongo`` (for the MongoDB export module)
 - ``pysnmp-lextudio`` (for SNMP support)
-- ``pySMART.smartx`` (for HDD Smart support) [Linux-only]
+- ``pySMART`` (for HDD Smart support) [Linux-only]
 - ``pyzmq`` (for the ZeroMQ export module)
 - ``requests`` (for the Ports, Cloud plugins and RESTful export module)
 - ``sparklines`` (for the Quick Plugin sparklines option)
