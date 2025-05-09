@@ -440,6 +440,54 @@ class GlancesPluginModel:
             return default
         return self.fields_description[item].get(key, default)
 
+    def _build_field_decoration(self, field):
+        """Return the field decoration.
+
+        The decoration is used to display the field in the UI.
+        """
+        # Manage the decoration
+        if self.fields_description and field in self.fields_description:
+            if (
+                self.fields_description[field].get('rate') is True
+                and isinstance(self.stats, dict)
+                and self.stats.get('time_since_update', 0) == 0
+            ):
+                return 'DEFAULT'
+            if self.fields_description[field].get('log') is True:
+                return self.get_alert_log(self.stats[field], header=field)
+            if self.fields_description[field].get('alert') is True:
+                return self.get_alert(self.stats[field], header=field)
+        return 'DEFAULT'
+
+    def _build_field_optional(self, field):
+        """Return true if the field is optional."""
+        if self.fields_description and field in self.fields_description:
+            return self.fields_description[field].get('optional', False)
+        return False
+
+    def _build_view_for_field(self, field):
+        value = {
+            'decoration': self._build_field_decoration(field),
+            'optional': self._build_field_optional(field),
+            'additional': False,
+            'splittable': False,
+            'hidden': False,
+        }
+
+        # Manage the hidden feature
+        # Allow to automatically hide fields when values is never different than 0
+        # Refactoring done for #2929
+        if not self.hide_zero:
+            value['hidden'] = False
+        elif field in self.views and 'hidden' in self.views[field]:
+            value['hidden'] = self.views[field]['hidden']
+            if field in self.hide_zero_fields and self.get_raw()[field] >= self.hide_threshold_bytes:
+                value['hidden'] = False
+        else:
+            value['hidden'] = field in self.hide_zero_fields
+
+        return value
+
     def update_views(self):
         """Update the stats views.
 
@@ -454,56 +502,17 @@ class GlancesPluginModel:
         """
         ret = {}
 
-        if isinstance(self.get_raw(), list) and self.get_raw() is not None and self.get_key() is not None:
+        if self.get_raw() is not None and isinstance(self.get_raw(), list) and self.get_key() is not None:
             # Stats are stored in a list of dict (ex: DISKIO, NETWORK, FS...)
             for i in self.get_raw():
                 key = i[self.get_key()]
                 ret[key] = {}
                 for field in listkeys(i):
-                    value = {
-                        'decoration': 'DEFAULT',
-                        'optional': False,
-                        'additional': False,
-                        'splittable': False,
-                    }
-                    # Manage the hidden feature
-                    # Allow to automatically hide fields when values is never different than 0
-                    # Refactoring done for #2929
-                    if not self.hide_zero:
-                        value['hidden'] = False
-                    elif key in self.views and field in self.views[key] and 'hidden' in self.views[key][field]:
-                        value['hidden'] = self.views[key][field]['hidden']
-                        if (
-                            field in self.hide_zero_fields
-                            and i[field] is not None
-                            and i[field] > self.hide_threshold_bytes
-                        ):
-                            value['hidden'] = False
-                    else:
-                        value['hidden'] = field in self.hide_zero_fields
-                    ret[key][field] = value
+                    ret[key][field] = self._build_view_for_field(field)
         elif isinstance(self.get_raw(), dict) and self.get_raw() is not None:
             # Stats are stored in a dict (ex: CPU, LOAD...)
             for field in listkeys(self.get_raw()):
-                value = {
-                    'decoration': 'DEFAULT',
-                    'optional': False,
-                    'additional': False,
-                    'splittable': False,
-                    'hidden': False,
-                }
-                # Manage the hidden feature
-                # Allow to automatically hide fields when values is never different than 0
-                # Refactoring done for #2929
-                if not self.hide_zero:
-                    value['hidden'] = False
-                elif field in self.views and 'hidden' in self.views[field]:
-                    value['hidden'] = self.views[field]['hidden']
-                    if field in self.hide_zero_fields and self.get_raw()[field] >= self.hide_threshold_bytes:
-                        value['hidden'] = False
-                else:
-                    value['hidden'] = field in self.hide_zero_fields
-                ret[field] = value
+                ret[field] = self._build_view_for_field(field)
 
         self.views = ret
 
@@ -840,9 +849,8 @@ class GlancesPluginModel:
         show=sda.*
         """
         # TODO: possible optimisation: create a re.compile list
-        return any(
-            j for j in [re.fullmatch(i.lower(), value.lower()) for i in self.get_conf_value('show', header=header)]
-        )
+        # nguuuquaaa: no need a compile list, the re module caches the compiling itself
+        return any(re.fullmatch(i, value, re.I) for i in self.get_conf_value('show', header=header))
 
     def is_hide(self, value, header=""):
         """Return True if the value is in the hide configuration list.
@@ -853,15 +861,20 @@ class GlancesPluginModel:
         hide=sda2,sda5,loop.*
         """
         # TODO: possible optimisation: create a re.compile list
-        return any(
-            j for j in [re.fullmatch(i.lower(), value.lower()) for i in self.get_conf_value('hide', header=header)]
-        )
+        # nguuuquaaa: no need a compile list, the re module caches the compiling itself
+        return any(re.fullmatch(i, value, re.I) for i in self.get_conf_value('hide', header=header))
 
     def is_display(self, value, header=""):
         """Return True if the value should be displayed in the UI"""
         if self.get_conf_value('show', header=header) != []:
             return self.is_show(value, header=header)
         return not self.is_hide(value, header=header)
+
+    def is_display_any(self, *values, header=""):
+        """Return True if any of the values should be displayed in the UI"""
+        if self.get_conf_value('show', header=header) != []:
+            return any(self.is_show(value, header=header) for value in values)
+        return not any(self.is_hide(value, header=header) for value in values)
 
     def read_alias(self):
         if self.plugin_name + '_' + 'alias' in self._limits:
