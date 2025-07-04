@@ -117,10 +117,19 @@ test-min-with-upgrade: venv-min-upgrade ## Upgrade deps and run unit tests in mi
 test-export-csv: ## Run interface tests with CSV
 	/bin/bash ./tests/test_export_csv.sh
 
-test-export-influxdb: ## Run interface tests with InfluxDB
-	/bin/bash ./tests/test_export_influxdb.sh
+test-export-json: ## Run interface tests with JSON
+	/bin/bash ./tests/test_export_json.sh
 
-test-export: test-export-csv test-export-influxdb ## Tests all exports
+test-export-influxdb-v1: ## Run interface tests with InfluxDB version 1 (Legacy)
+	/bin/bash ./tests/test_export_influxdb_v1.sh
+
+test-export-influxdb-v3: ## Run interface tests with InfluxDB version 3 (Core)
+	/bin/bash ./tests/test_export_influxdb_v3.sh
+
+test-export-timescaledb: ## Run interface tests with TimescaleDB
+	/bin/bash ./tests/test_export_timescaledb.sh
+
+test-export: test-export-csv test-export-json test-export-influxdb-v1 test-export-influxdb-v3 test-export-timescaledb## Tests all exports
 
 # ===================================================================
 # Linters, profilers and cyber security
@@ -199,6 +208,7 @@ trivy: ## Run Trivy to find vulnerabilities in container images
 # ===================================================================
 
 docs: ## Create the documentation
+	$(PYTHON) ./generate_openapi.py
 	$(PYTHON) -m glances -C $(CONF) --api-doc > ./docs/api.rst
 	cd docs && ./build.sh && cd ..
 

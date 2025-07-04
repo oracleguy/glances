@@ -124,6 +124,7 @@ Optional dependencies:
 - ``podman`` (for the Containers Podman monitoring support)
 - ``potsdb`` (for the OpenTSDB export module)
 - ``prometheus_client`` (for the Prometheus export module)
+- ``psycopg[binary]`` (for the PostgreSQL/TimeScale export module)
 - ``pygal`` (for the graph export module)
 - ``pymdstat`` (for RAID support) [Linux-only]
 - ``pymongo`` (for the MongoDB export module)
@@ -410,12 +411,13 @@ Shell tab completion
 
 Glances 4.3.2 and higher includes shell tab autocompletion thanks to the --print-completion option.
 
-For example, on a Linux operating system with Bash shell:
+For example, on a Linux operating system with bash shell:
 
 .. code-block:: console
 
-    $ glances --print-completion bash | sudo tee -a /etc/bash_completion.d/glances
-    $ source /etc/bash_completion.d/glances
+    $ mkdir -p ${XDG_DATA_HOME:="$HOME/.local/share"}/bash-completion
+    $ glances --print-completion bash > ${XDG_DATA_HOME:="$HOME/.local/share"}/bash-completion/glances
+    $ source ${XDG_DATA_HOME:="$HOME/.local/share"}/bash-completion/glances
 
 Following shells are supported: bash, zsh and tcsh.
 
@@ -501,9 +503,24 @@ If you have any question (after RTFM!), please post it on the official Q&A `foru
 Gateway to other services
 =========================
 
-Glances can export stats to: ``CSV`` file, ``JSON`` file, ``InfluxDB``, ``Cassandra``, ``CouchDB``,
-``OpenTSDB``, ``Prometheus``, ``StatsD``, ``ElasticSearch``, ``RabbitMQ/ActiveMQ``,
-``ZeroMQ``, ``Kafka``, ``Riemann``, ``Graphite`` and ``RESTful`` server.
+Glances can export stats to:
+
+- ``CSV`` file
+- ``JSON`` file
+- ``InfluxDB`` server
+- ``Cassandra`` server
+- ``CouchDB`` server
+- ``OpenTSDB`` server
+- ``Prometheus`` server
+- ``StatsD`` server
+- ``ElasticSearch`` server
+- ``PostgreSQL/TimeScale`` server
+- ``RabbitMQ/ActiveMQ`` broker
+- ``ZeroMQ`` broker
+- ``Kafka`` broker
+- ``Riemann`` server
+- ``Graphite`` server
+- ``RESTful`` endpoint
 
 How to contribute ?
 ===================
@@ -528,6 +545,15 @@ License
 
 Glances is distributed under the LGPL version 3 license. See ``COPYING`` for more details.
 
+More stars !
+============
+
+Please give us a star on `GitHub`_ if you like this project.
+
+.. image:: https://api.star-history.com/svg?repos=nicolargo/glances&type=Date
+    :target: https://www.star-history.com/#nicolargo/glances&Date
+    :alt: Star history
+
 .. _psutil: https://github.com/giampaolo/psutil
 .. _Python: https://www.python.org/getit/
 .. _Termux: https://play.google.com/store/apps/details?id=com.termux
@@ -538,3 +564,4 @@ Glances is distributed under the LGPL version 3 license. See ``COPYING`` for mor
 .. _sponsors: https://github.com/sponsors/nicolargo
 .. _wishlist: https://www.amazon.fr/hz/wishlist/ls/BWAAQKWFR3FI?ref_=wl_share
 .. _Docker: https://github.com/nicolargo/glances/blob/develop/docs/docker.rst
+.. _GitHub: https://github.com/nicolargo/glances
